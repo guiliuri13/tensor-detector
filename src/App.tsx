@@ -18,9 +18,8 @@ function App() {
 		try {
 			const model = await cocoSsd.load();
 			setModel(model);
-			console.log("set loaded Model");
 		} catch (err) {
-			console.log(err);
+			console.error(err);
 			console.log("failed load model");
 		}
 	}
@@ -29,13 +28,7 @@ function App() {
 		tf.ready().then(() => {
 			loadModel();
 		});
-		a()
 	}, []);
-	
-	async function a() {
-		const predictions = await model?.detect(document.getElementById("img") as HTMLImageElement);
-		console.log(predictions);
-	}
  
 	async function predictionFunction() {
 		//Clear the canvas for each prediction
@@ -53,13 +46,13 @@ function App() {
 		if (predictions && predictions.length > 0) {
 			console.log(predictions);
 			for (let n = 0; n < predictions.length; n++) {
-				console.log(n);
-				if (ctx && predictions[n].score > 0.8) {
-					//Threshold is 0.8 or 80%
+				console.log(n, ctx, predictions[n].score);
+				if (ctx && predictions[n].score > 0.7) {
+					//Threshold is 0.7 or 70%
 					//Extracting the coordinate and the bounding box information
 					let bboxLeft = predictions[n].bbox[0];
 					let bboxTop = predictions[n].bbox[1];
-					let bboxWidth = predictions[n].bbox[2];
+					let bboxWidth = predictions[n].bbox[2] - (bboxLeft * 2);
 					let bboxHeight = predictions[n].bbox[3] - bboxTop;
 					console.log("bboxLeft: " + bboxLeft);
 					console.log("bboxTop: " + bboxTop);
@@ -89,12 +82,18 @@ function App() {
 		setTimeout(() => predictionFunction(), 500);
 	}
 
+	useEffect(() => {
+		setVideoWidth(webcamRef.current?.video.videoWidth);
+		setVideoHeight(webcamRef.current?.video.videoHeight);
+		console.log("🚀 ~ webcamRef.current?.video.videoWidth", webcamRef.current?.video.videoWidth, webcamRef.current?.video.videoHeight)
+	}, [webcamRef.current?.video.videoWidth]);
+
 	return (
 		<div className="App">
 
 			<button onClick={() => predictionFunction()}>Start</button>
 
-			<div style={{ position: "absolute", top: "400px" }}>
+			<div style={{ position: "absolute", top: "50px" }}>
 				<Webcam
 					audio={false}
 					id="img"
@@ -104,7 +103,7 @@ function App() {
 					videoConstraints={videoConstraints}
 				/>
 			</div>
-			<div style={{ position: "absolute", top: "400px", zIndex: "9999" }}>
+			<div style={{ position: "absolute", top: "50px", zIndex: "9999" }}>
 				<canvas
 					id="myCanvas"
 					width={videoWidth}
